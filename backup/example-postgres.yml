@@ -1,0 +1,50 @@
+version: '3.8'
+
+# Example 1: PostgreSQL with logical backup
+# This stack shows how to configure PostgreSQL logical backup using pg_dumpall
+
+services:
+  postgres-db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=mydb
+      - POSTGRES_PORT=5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
+    labels:
+      # Enable backup for this container
+      - "backup.enable=true"
+      # Use PostgreSQL logical backup (container stays running)
+      - "backup.database.pg_dumpall=true"
+
+  app:
+    image: myapp:latest
+    restart: always
+    depends_on:
+      - postgres-db
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@postgres-db:5432/mydb
+    volumes:
+      - app_uploads:/app/uploads
+      - app_logs:/app/logs
+    networks:
+      - default
+    labels:
+      # Enable backup for this container
+      - "backup.enable=true"
+      # Backup multiple directories using volume-path labels
+      - "backup.volume-path.uploads=/app/uploads"
+      - "backup.volume-path.logs=/app/logs"
+
+volumes:
+  postgres_data:
+  app_uploads:
+  app_logs:
+
+networks:
+  default:

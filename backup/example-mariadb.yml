@@ -1,0 +1,37 @@
+# Example 2: MariaDB with logical backup
+# This stack shows how to configure MariaDB backup using mariadb-dump
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=rootpassword
+      - MARIADB_DATABASE=mydb
+      - MARIADB_USER=dbuser
+      - MARIADB_PASSWORD=dbpass
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    labels:
+      # Enable backup for this container
+      - "backup.enable=true"
+      # Use MariaDB logical backup (container stays running)
+      - "backup.database.mariadb-dump=true"
+
+  web:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - web_content:/usr/share/nginx/html
+      - web_config:/etc/nginx/conf.d
+    labels:
+      # Enable backup for this container
+      - "backup.enable=true"
+      # Backup web content and configuration
+      - "backup.volume-path.html=/usr/share/nginx/html"
+      - "backup.volume-path.config=/etc/nginx/conf.d"
+
+volumes:
+  mariadb_data:
+  web_content:
+  web_config:
