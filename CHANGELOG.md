@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/jobtrek/backup/compare/v0.1.1...v0.1.2) (2025-11-10)
+
+
+### Miscellaneous Chores
+
+* add dependabot configuration and build-publish workflow ([#2](https://github.com/jobtrek/backup/issues/2)) ([563e31e](https://github.com/jobtrek/backup/commit/563e31e8c4199e9cbe01367167079fb9ceec0d47))
+
 ## [0.1.1](https://github.com/jobtrek/backup/compare/v0.1.0...v0.1.1) (2025-11-10)
 
 
