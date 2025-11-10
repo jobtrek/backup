@@ -1,0 +1,18 @@
+on:
+  push:
+    branches:
+      - main # Prepare new release on new changes to main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+name: Prepare new release
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4.4.0
+        with:
+          token: ${{ secrets.BACKUP_CONTAINER_RELEASE_PLEASE }}
