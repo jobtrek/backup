@@ -103,7 +103,7 @@ for PROJECT_NAME in "${ALL_PROJECTS[@]}"; do
     # Store container info
     CONTAINER_DATA["${CONTAINER_ID}_service"]="$SERVICE_NAME"
     CONTAINER_DATA["${CONTAINER_ID}_pg_dumpall"]="$PG_DUMPALL"
-  CONTAINER_DATA["${CONTAINER_ID}_mariadb_dump"]="$MARIADB_DUMP"
+    CONTAINER_DATA["${CONTAINER_ID}_mariadb_dump"]="$MARIADB_DUMP"
     CONTAINER_DATA["${CONTAINER_ID}_skip_logical"]="$SKIP_LOGICAL_BACKUP"
     
     # If no database logical backup (or it's being skipped), container can be stopped
