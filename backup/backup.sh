@@ -86,18 +86,24 @@ for PROJECT_NAME in "${ALL_PROJECTS[@]}"; do
       docker inspect "$CONTAINER_ID" --format='{{range $k, $v := .Config.Labels}}{{$k}}={{$v}}{{"\n"}}{{end}}' | grep '^backup\.volume-path\.'
     )
     HAS_VOLUME_BACKUP=$((${#VOLUME_LABELS_CHECK[@]} > 0))
+    if ((${#VOLUME_LABELS_CHECK[@]} > 0)); then
+      CONTAINER_DATA["${CONTAINER_ID}_volume_labels"]=$(printf '%s\n' "${VOLUME_LABELS_CHECK[@]}")
+    else
+      CONTAINER_DATA["${CONTAINER_ID}_volume_labels"]=""
+    fi
+    CONTAINER_DATA["${CONTAINER_ID}_has_volume_backup"]="$HAS_VOLUME_BACKUP"
     
     # If both logical backup and volume backup are configured, skip logical backup
     SKIP_LOGICAL_BACKUP=false
     if [[ "$HAS_VOLUME_BACKUP" -eq 1 ]] && [[ "$PG_DUMPALL" == "true" || "$MARIADB_DUMP" == "true" ]]; then
       SKIP_LOGICAL_BACKUP=true
-      log_warn "  -> Both logical backup and volume backup are configured. Volume backup will be used, logical backup will be skipped."
+      log_warn "  -> Detected both logical and volume backups for ${SERVICE_NAME}. Logical backup will be skipped to avoid copying live database files while running. Review your backup strategy."
     fi
     
     # Store container info
     CONTAINER_DATA["${CONTAINER_ID}_service"]="$SERVICE_NAME"
     CONTAINER_DATA["${CONTAINER_ID}_pg_dumpall"]="$PG_DUMPALL"
-    CONTAINER_DATA["${CONTAINER_ID}_mariadb_dump"]="$MARIADB_DUMP"
+  CONTAINER_DATA["${CONTAINER_ID}_mariadb_dump"]="$MARIADB_DUMP"
     CONTAINER_DATA["${CONTAINER_ID}_skip_logical"]="$SKIP_LOGICAL_BACKUP"
     
     # If no database logical backup (or it's being skipped), container can be stopped
@@ -331,11 +337,13 @@ for PROJECT_NAME in "${ALL_PROJECTS[@]}"; do
     fi
     
     # --- Handle volume path backups ---
-    # Get all labels starting with backup.volume-path.
-    mapfile -t VOLUME_LABELS < <(
-      docker inspect "$CONTAINER_ID" --format='{{range $k, $v := .Config.Labels}}{{$k}}={{$v}}{{"\n"}}{{end}}' | grep '^backup\.volume-path\.'
-    )
-    
+    VOLUME_LABELS_RAW="${CONTAINER_DATA[${CONTAINER_ID}_volume_labels]}"
+    if [[ -n "$VOLUME_LABELS_RAW" ]]; then
+      mapfile -t VOLUME_LABELS <<<"$VOLUME_LABELS_RAW"
+    else
+      VOLUME_LABELS=()
+    fi
+
     if ((${#VOLUME_LABELS[@]} > 0)); then
       log_info "Found ${#VOLUME_LABELS[@]} volume path(s) to backup"
       mkdir -p "$CONTAINER_BACKUP_DIR/volumes"

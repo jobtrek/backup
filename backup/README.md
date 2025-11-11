@@ -49,7 +49,11 @@ labels:
   - "backup.volume-path.pgdata=/var/lib/postgresql/data"
 ```
 
-**Note:** Physical backups require the database container to be stopped to ensure data consistency. The backup system will automatically stop containers that only have directory backups (no logical database dumps).
+**Note:** Physical backups require the database container to be stopped to ensure data consistency. The backup system automatically stops containers that only have directory backups (no logical database dumps) and prioritizes the directory backup if both strategies are configured.
+
+**WARNING: Do Not Mix Backup Strategies**
+
+Configuring both a logical database backup (for example, `backup.database.pg_dumpall=true`) and a physical backup of the database directory (using `backup.volume-path.*`) on the **same service** is unsafe and unsupported. Physical backups need the database to be stopped; attempting to copy live database files will likely produce a **corrupt and unusable backup**. The backup sidecar now skips the logical dump if both are present, but you should explicitly choose one strategy per service or split the workloads across separate containers.
 
 ### MariaDB Backups
 
@@ -77,7 +81,11 @@ labels:
   - "backup.volume-path.mariadb=/var/lib/mysql"
 ```
 
-**Note:** Physical backups require the database container to be stopped to ensure data consistency.
+**Note:** Physical backups require the database container to be stopped to ensure data consistency. The backup system automatically stops containers that only have directory backups (no logical database dumps) and prioritizes the directory backup if both strategies are configured.
+
+**WARNING: Do Not Mix Backup Strategies**
+
+Combining `backup.database.mariadb-dump=true` with a `backup.volume-path.*` label on the **same service** is unsafe and unsupported. Physical backups depend on the database container being stopped; copying live MariaDB files will likely result in a **corrupt and unusable backup**. The backup sidecar skips the logical dump when both are present, so pick one backup method per service or run separate containers for each strategy.
 
 ## Usage Example
 
