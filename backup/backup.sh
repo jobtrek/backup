@@ -79,13 +79,11 @@ for PROJECT_NAME in "${ALL_PROJECTS[@]}"; do
     
     # Check for database backup labels
     PG_DUMPALL=$(docker inspect --format='{{index .Config.Labels "backup.database.pg_dumpall"}}' "$CONTAINER_ID")
-    PG_DATA=$(docker inspect --format='{{index .Config.Labels "backup.database.pg_data"}}' "$CONTAINER_ID")
     MARIADB_DUMP=$(docker inspect --format='{{index .Config.Labels "backup.database.mariadb-dump"}}' "$CONTAINER_ID")
     
     # Store container info
     CONTAINER_DATA["${CONTAINER_ID}_service"]="$SERVICE_NAME"
     CONTAINER_DATA["${CONTAINER_ID}_pg_dumpall"]="$PG_DUMPALL"
-    CONTAINER_DATA["${CONTAINER_ID}_pg_data"]="$PG_DATA"
     CONTAINER_DATA["${CONTAINER_ID}_mariadb_dump"]="$MARIADB_DUMP"
     
     # If no database logical backup, container can be stopped
@@ -236,18 +234,6 @@ for PROJECT_NAME in "${ALL_PROJECTS[@]}"; do
         else
           log_error "  -> Failed to perform pg_dumpall for ${SERVICE_NAME}. Check error log in backup archive."
         fi
-      fi
-    fi
-    
-    # --- Handle PostgreSQL physical backup (pg_data) ---
-    if [[ -n "${CONTAINER_DATA[${CONTAINER_ID}_pg_data]}" && "${CONTAINER_DATA[${CONTAINER_ID}_pg_data]}" != "<no value>" ]]; then
-      PG_DATA_PATH="${CONTAINER_DATA[${CONTAINER_ID}_pg_data]}"
-      log_info "Performing PostgreSQL physical backup from: ${PG_DATA_PATH}..."
-      mkdir -p "$CONTAINER_BACKUP_DIR/pg_data"
-      if docker cp "$CONTAINER_ID:$PG_DATA_PATH/." "$CONTAINER_BACKUP_DIR/pg_data/"; then
-        log_info "  -> PostgreSQL physical backup completed"
-      else
-        log_error "  -> Failed to copy PostgreSQL data from ${PG_DATA_PATH}"
       fi
     fi
     

@@ -39,12 +39,17 @@ environment:
   # - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
 ```
 
-**Physical backup (copy data directory)** - Container is stopped:
+**Physical backup (data directory)** - Container is stopped:
+
+For physical database backups, use the standard directory backup approach with `backup.volume-path.*` labels. This is simpler and treats database files like any other data directory:
+
 ```yaml
 labels:
   - "backup.enable=true"
-  - "backup.database.pg_data=/var/lib/postgresql/data"
+  - "backup.volume-path.pgdata=/var/lib/postgresql/data"
 ```
+
+**Note:** Physical backups require the database container to be stopped to ensure data consistency. The backup system will automatically stop containers that only have directory backups (no logical database dumps).
 
 ### MariaDB Backups
 
@@ -61,6 +66,18 @@ environment:
   # MYSQL_USER is optional (defaults to "root")
   - MYSQL_USER=root
 ```
+
+**Physical backup (data directory)** - Container is stopped:
+
+For physical database backups, use the standard directory backup approach with `backup.volume-path.*` labels:
+
+```yaml
+labels:
+  - "backup.enable=true"
+  - "backup.volume-path.mariadb=/var/lib/mysql"
+```
+
+**Note:** Physical backups require the database container to be stopped to ensure data consistency.
 
 ## Usage Example
 
@@ -237,9 +254,8 @@ volumes:
 | Label | Values | Description |
 |-------|--------|-------------|
 | `backup.enable` | `true` | Enable backup for this container |
-| `backup.volume-path.<name>` | `/path/to/dir` | Backup a directory (can have multiple) |
+| `backup.volume-path.<name>` | `/path/to/dir` | Backup a directory (can have multiple). Use for file backups or physical database backups. |
 | `backup.database.pg_dumpall` | `true` | PostgreSQL logical backup (requires env vars) |
-| `backup.database.pg_data` | `/path/to/data` | PostgreSQL physical backup |
 | `backup.database.mariadb-dump` | `true` | MariaDB logical backup (requires env vars) |
 
 ## Security Considerations

@@ -1,7 +1,7 @@
 version: '3.8'
 
 # Example 3: PostgreSQL with physical backup
-# This stack shows how to configure PostgreSQL physical backup by copying data directory
+# This stack shows how to configure PostgreSQL physical backup using directory backup
 # WARNING: The database container will be stopped during backup
 
 services:
@@ -17,8 +17,8 @@ services:
     labels:
       # Enable backup for this container
       - "backup.enable=true"
-      # Use PostgreSQL physical backup (container will be stopped)
-      - "backup.database.pg_data=/var/lib/postgresql/data"
+      # Use directory backup for PostgreSQL physical backup (container will be stopped)
+      - "backup.volume-path.pgdata=/var/lib/postgresql/data"
 
   app:
     image: myapp:latest
