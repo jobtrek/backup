@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   docker:
+    if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
