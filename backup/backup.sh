@@ -47,7 +47,7 @@ for PROJECT_NAME in "${ALL_PROJECTS[@]}"; do
   TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
   UUID=$(uuidgen)
   BACKUP_DIR=$(mktemp -d)
-  ARCHIVE_NAME="backup-${PROJECT_NAME}-${TIMESTAMP}-${UUID}.tar.zst"
+  ARCHIVE_NAME="backup_${PROJECT_NAME}_${TIMESTAMP}_${UUID}.tar.zst"
   ARCHIVE_PATH="${BACKUP_DIR}/${ARCHIVE_NAME}"
   
   # Discover all containers in this stack with backup.enable=true
