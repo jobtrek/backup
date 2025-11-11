@@ -1,0 +1,43 @@
+# Example: Restore Container
+# Run this in the directory where your application stack is located
+
+services:
+  restore:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # IMPORTANT: Copy .env.example to .env and fill in your actual credentials before running
+    env_file:
+      - .env
+    # environment:
+      # REQUIRED: Name of the stack to restore (must match backup archive prefix)
+      # - PROJECT_NAME=myapp
+      
+      # REQUIRED: S3 Configuration
+      # For AWS S3:
+      # - S3_BUCKET_URL=s3://my-backup-bucket/backups
+      # - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      # - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # - AWS_DEFAULT_REGION=us-east-1
+      
+      # For MinIO or other S3-compatible storage:
+      # - S3_BUCKET_URL=s3://my-backup-bucket/backups
+      # - AWS_ACCESS_KEY_ID=minioadmin
+      # - AWS_SECRET_ACCESS_KEY=minioadmin
+      # - AWS_DEFAULT_REGION=us-east-1
+      # - AWS_ENDPOINT_URL=https://minio.example.com
+      
+      # OPTIONAL: Specific backup file to restore
+      # - BACKUP_FILE=backup_myapp_20231105-120000-uuid.tar.zst
+      
+      # OPTIONAL: Restore mode (latest, specific, list)
+      # - RESTORE_MODE=latest
+      
+      # OPTIONAL: Skip stopping the stack (default: false)
+      # - SKIP_STOP=false
+      
+      # OPTIONAL: Skip starting the stack after restore (default: false)
+      # - SKIP_START=false
+    volumes:
+      # REQUIRED: Access to Docker daemon
+      - /var/run/docker.sock:/var/run/docker.sock
