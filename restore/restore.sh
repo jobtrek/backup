@@ -7,6 +7,60 @@ log_info() { echo "[INFO] $*"; }
 log_warn() { echo "[WARN] $*" >&2; }
 log_error() { echo "[ERROR] $*" >&2; }
 
+# --- Helper Functions ---
+
+# Wait for PostgreSQL to be ready
+wait_for_postgres() {
+  local container_id="$1"
+  local pguser="$2"
+  local timeout="${3:-60}"
+  local wait_count=0
+  
+  log_info "  -> Waiting for PostgreSQL to be ready (timeout: ${timeout}s)..."
+  
+  while [[ $wait_count -lt $timeout ]]; do
+    if docker exec "$container_id" pg_isready -U "$pguser" >/dev/null 2>&1; then
+      log_info "  -> ✓ PostgreSQL is ready"
+      return 0
+    fi
+    sleep 1
+    wait_count=$((wait_count + 1))
+  done
+  
+  log_warn "  -> Timeout waiting for PostgreSQL to be ready"
+  return 1
+}
+
+# Wait for MariaDB to be ready
+wait_for_mariadb() {
+  local container_id="$1"
+  local db_user="$2"
+  local db_password="$3"
+  local timeout="${4:-60}"
+  local wait_count=0
+  
+  log_info "  -> Waiting for MariaDB to be ready (timeout: ${timeout}s)..."
+  
+  while [[ $wait_count -lt $timeout ]]; do
+    if [[ -n "$db_password" ]]; then
+      if docker exec "$container_id" sh -c "mysqladmin ping -u \"$db_user\" -p\"$db_password\"" >/dev/null 2>&1; then
+        log_info "  -> ✓ MariaDB is ready"
+        return 0
+      fi
+    else
+      if docker exec "$container_id" sh -c "mysqladmin ping -u \"$db_user\"" >/dev/null 2>&1; then
+        log_info "  -> ✓ MariaDB is ready"
+        return 0
+      fi
+    fi
+    sleep 1
+    wait_count=$((wait_count + 1))
+  done
+  
+  log_warn "  -> Timeout waiting for MariaDB to be ready"
+  return 1
+}
+
 # --- Configuration (from Environment Variables) ---
 : "${PROJECT_NAME?Missing PROJECT_NAME env var}"
 : "${S3_BUCKET_URL?Missing S3_BUCKET_URL env var}"
@@ -18,6 +72,22 @@ log_error() { echo "[ERROR] $*" >&2; }
 RESTORE_MODE="${RESTORE_MODE:-latest}"
 SKIP_STOP="${SKIP_STOP:-false}"
 SKIP_START="${SKIP_START:-false}"
+
+# Temporary directory (will be cleaned up on exit)
+TEMP_DIR=$(mktemp -d)
+
+# Cleanup function
+cleanup() {
+  local exit_code=$?
+  if [[ -d "$TEMP_DIR" ]]; then
+    log_info "Cleaning up temporary files: $TEMP_DIR"
+    rm -rf "$TEMP_DIR"
+  fi
+  exit $exit_code
+}
+
+# Set up trap to ensure cleanup on exit
+trap cleanup EXIT INT TERM
 
 log_info "=== Restore Container Starting ==="
 log_info "Project Name: ${PROJECT_NAME}"
@@ -44,16 +114,13 @@ else
 fi
 
 # Check available disk space (require at least 5GB)
-TEMP_DIR=$(mktemp -d)
 AVAILABLE_SPACE=$(df -BG "$(dirname "$TEMP_DIR")" 2>/dev/null | awk 'NR==2 {print $4}' | sed 's/G//' | tr -d '[:space:]')
 if ! [[ "$AVAILABLE_SPACE" =~ ^[0-9]+$ ]]; then
   log_error "Could not determine available disk space"
-  rm -rf "$TEMP_DIR"
   exit 1
 fi
 if [[ "$AVAILABLE_SPACE" -lt 5 ]]; then
   log_error "Insufficient disk space. Required: 5GB, Available: ${AVAILABLE_SPACE}GB"
-  rm -rf "$TEMP_DIR"
   exit 1
 fi
 log_info "✓ Sufficient disk space available: ${AVAILABLE_SPACE}GB"
@@ -75,7 +142,6 @@ mapfile -t AVAILABLE_BACKUPS < <(
 
 if [[ ${#AVAILABLE_BACKUPS[@]} -eq 0 ]]; then
   log_error "No backups found for project '${PROJECT_NAME}' in S3 bucket"
-  rm -rf "$TEMP_DIR"
   exit 1
 fi
 
@@ -90,7 +156,6 @@ if [[ "$RESTORE_MODE" == "list" ]]; then
     FORMATTED_DATE=$(date -d "${TIMESTAMP:0:8} ${TIMESTAMP:9:2}:${TIMESTAMP:11:2}:${TIMESTAMP:13:2}" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "$TIMESTAMP")
     echo "  - $backup ($FORMATTED_DATE)"
   done
-  rm -rf "$TEMP_DIR"
   exit 0
 fi
 
@@ -103,7 +168,6 @@ if [[ -n "$BACKUP_FILE" ]]; then
     log_error "Specified backup file '${BACKUP_FILE}' not found in S3"
     log_info "Available backups:"
     printf '  - %s\n' "${AVAILABLE_BACKUPS[@]}"
-    rm -rf "$TEMP_DIR"
     exit 1
   fi
   log_info "Using specified backup: ${SELECTED_BACKUP}"
@@ -113,7 +177,6 @@ elif [[ "$RESTORE_MODE" == "latest" ]] || [[ "$RESTORE_MODE" == "specific" ]]; t
   log_info "Using latest backup: ${SELECTED_BACKUP}"
 else
   log_error "Invalid RESTORE_MODE: ${RESTORE_MODE}. Must be 'latest', 'specific', or 'list'"
-  rm -rf "$TEMP_DIR"
   exit 1
 fi
 
@@ -167,7 +230,6 @@ if aws s3 cp "${S3_BUCKET_URL%/}/${SELECTED_BACKUP}" "$DOWNLOAD_PATH"; then
   log_info "✓ Download complete: ${DOWNLOAD_SIZE}"
 else
   log_error "Failed to download backup from S3"
-  rm -rf "$TEMP_DIR"
   exit 1
 fi
 
@@ -177,7 +239,6 @@ if zstd -t "$DOWNLOAD_PATH" >/dev/null 2>&1; then
   log_info "✓ Archive integrity verified"
 else
   log_error "Archive integrity check failed"
-  rm -rf "$TEMP_DIR"
   exit 1
 fi
 
@@ -191,7 +252,6 @@ if tar -I zstd -xf "$DOWNLOAD_PATH" -C "$EXTRACT_DIR"; then
   rm -f "$DOWNLOAD_PATH"
 else
   log_error "Failed to extract archive"
-  rm -rf "$TEMP_DIR"
   exit 1
 fi
 
@@ -205,7 +265,6 @@ shopt -u nullglob
 
 if [[ ${#SERVICE_DIRS[@]} -eq 0 ]]; then
   log_error "No service directories found in backup"
-  rm -rf "$TEMP_DIR"
   exit 1
 fi
 
@@ -290,10 +349,6 @@ if [[ "$SKIP_STOP" != "true" ]]; then
       docker start "${CONTAINER_IDS[@]}" || log_warn "Some containers may not have started cleanly"
     fi
   fi
-  
-  # Wait for databases to be ready
-  log_info "Waiting for databases to be ready (30s)..."
-  sleep 30
 fi
 
 # Process each service for database restoration
@@ -327,40 +382,46 @@ for SERVICE_DIR in "${SERVICE_DIRS[@]}"; do
       fi
     fi
     
+    # Wait for PostgreSQL to be ready
+    wait_for_postgres "$CONTAINER_ID" "$PGUSER"
+    
     if [[ -n "$PGPASSWORD" ]]; then
       # Create .pgpass file for authentication
       docker exec "$CONTAINER_ID" sh -c 'printf "*:*:*:%s:%s\n" "$1" "$2" > /tmp/.pgpass && chmod 600 /tmp/.pgpass' sh "$PGUSER" "$PGPASSWORD"
       
       # Restore database
+      RESTORE_EXIT_CODE=0
       if docker exec -i \
         --env "PGPASSFILE=/tmp/.pgpass" \
         "$CONTAINER_ID" sh -c "psql -U \"$PGUSER\" -d postgres" \
         < "$SERVICE_DIR/database/pg_dumpall.sql" 2>&1 | tee "$TEMP_DIR/restore_pg.log"; then
-        
-        docker exec "$CONTAINER_ID" rm -f /tmp/.pgpass || true
-        
-        # Check for errors
-        if grep -q -i "error" "$TEMP_DIR/restore_pg.log"; then
-          log_warn "  -> PostgreSQL restore completed with warnings/errors. Check logs."
-        else
-          log_info "  -> ✓ PostgreSQL database restored successfully"
-        fi
+        RESTORE_EXIT_CODE=${PIPESTATUS[0]}
       else
-        docker exec "$CONTAINER_ID" rm -f /tmp/.pgpass || true
-        log_error "  -> Failed to restore PostgreSQL database"
+        RESTORE_EXIT_CODE=$?
+      fi
+      
+      docker exec "$CONTAINER_ID" rm -f /tmp/.pgpass || true
+      
+      # Check exit code instead of grepping for "error"
+      if [[ $RESTORE_EXIT_CODE -eq 0 ]]; then
+        log_info "  -> ✓ PostgreSQL database restored successfully"
+      else
+        log_error "  -> Failed to restore PostgreSQL database (exit code: $RESTORE_EXIT_CODE)"
       fi
     else
       log_warn "  -> No PostgreSQL password found. Attempting restore without password..."
+      RESTORE_EXIT_CODE=0
       if docker exec -i "$CONTAINER_ID" sh -c "psql -U \"$PGUSER\" -d postgres" \
         < "$SERVICE_DIR/database/pg_dumpall.sql" 2>&1 | tee "$TEMP_DIR/restore_pg.log"; then
-        
-        if grep -q -i "error" "$TEMP_DIR/restore_pg.log"; then
-          log_warn "  -> PostgreSQL restore completed with warnings/errors. Check logs."
-        else
-          log_info "  -> ✓ PostgreSQL database restored successfully"
-        fi
+        RESTORE_EXIT_CODE=${PIPESTATUS[0]}
       else
-        log_error "  -> Failed to restore PostgreSQL database"
+        RESTORE_EXIT_CODE=$?
+      fi
+      
+      if [[ $RESTORE_EXIT_CODE -eq 0 ]]; then
+        log_info "  -> ✓ PostgreSQL database restored successfully"
+      else
+        log_error "  -> Failed to restore PostgreSQL database (exit code: $RESTORE_EXIT_CODE)"
       fi
     fi
   fi
@@ -379,37 +440,43 @@ for SERVICE_DIR in "${SERVICE_DIRS[@]}"; do
     DB_PASSWORD="${MYSQL_ROOT_PASSWORD:-${MARIADB_ROOT_PASSWORD:-$MYSQL_PASSWORD}}"
     DB_USER="${MYSQL_USER:-root}"
     
+    # Wait for MariaDB to be ready
+    wait_for_mariadb "$CONTAINER_ID" "$DB_USER" "$DB_PASSWORD"
+    
     if [[ -n "$DB_PASSWORD" ]]; then
       # Create .my.cnf file for authentication
       docker exec "$CONTAINER_ID" sh -c 'printf "[client]\nuser=%s\npassword=%s\n" "$1" "$2" > /tmp/.my.cnf && chmod 600 /tmp/.my.cnf' sh "$DB_USER" "$DB_PASSWORD"
       
       # Restore database
+      RESTORE_EXIT_CODE=0
       if docker exec -i "$CONTAINER_ID" sh -c "mariadb --defaults-file=/tmp/.my.cnf" \
         < "$SERVICE_DIR/mariadb_dump/all_databases.sql" 2>&1 | tee "$TEMP_DIR/restore_mariadb.log"; then
-        
-        docker exec "$CONTAINER_ID" rm -f /tmp/.my.cnf || true
-        
-        if grep -q -i "error" "$TEMP_DIR/restore_mariadb.log"; then
-          log_warn "  -> MariaDB restore completed with warnings/errors. Check logs."
-        else
-          log_info "  -> ✓ MariaDB database restored successfully"
-        fi
+        RESTORE_EXIT_CODE=${PIPESTATUS[0]}
       else
-        docker exec "$CONTAINER_ID" rm -f /tmp/.my.cnf || true
-        log_error "  -> Failed to restore MariaDB database"
+        RESTORE_EXIT_CODE=$?
+      fi
+      
+      docker exec "$CONTAINER_ID" rm -f /tmp/.my.cnf || true
+      
+      if [[ $RESTORE_EXIT_CODE -eq 0 ]]; then
+        log_info "  -> ✓ MariaDB database restored successfully"
+      else
+        log_error "  -> Failed to restore MariaDB database (exit code: $RESTORE_EXIT_CODE)"
       fi
     else
       log_warn "  -> No MariaDB password found. Attempting restore without password..."
+      RESTORE_EXIT_CODE=0
       if docker exec -i "$CONTAINER_ID" sh -c "mariadb -u \"$DB_USER\"" \
         < "$SERVICE_DIR/mariadb_dump/all_databases.sql" 2>&1 | tee "$TEMP_DIR/restore_mariadb.log"; then
-        
-        if grep -q -i "error" "$TEMP_DIR/restore_mariadb.log"; then
-          log_warn "  -> MariaDB restore completed with warnings/errors. Check logs."
-        else
-          log_info "  -> ✓ MariaDB database restored successfully"
-        fi
+        RESTORE_EXIT_CODE=${PIPESTATUS[0]}
       else
-        log_error "  -> Failed to restore MariaDB database"
+        RESTORE_EXIT_CODE=$?
+      fi
+      
+      if [[ $RESTORE_EXIT_CODE -eq 0 ]]; then
+        log_info "  -> ✓ MariaDB database restored successfully"
+      else
+        log_error "  -> Failed to restore MariaDB database (exit code: $RESTORE_EXIT_CODE)"
       fi
     fi
   fi
@@ -436,10 +503,6 @@ if [[ "$SKIP_START" != "true" ]]; then
 else
   log_info "=== Phase 7: Stack Restart [SKIPPED] ==="
 fi
-
-# --- Cleanup ---
-log_info "Cleaning up temporary files..."
-rm -rf "$TEMP_DIR"
 
 log_info "=== Restore Complete ==="
 log_info "Stack '${PROJECT_NAME}' has been restored from backup: ${SELECTED_BACKUP}"

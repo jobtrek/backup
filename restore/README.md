@@ -50,11 +50,13 @@ This folder contains a restore container designed to restore Docker Compose stac
 - `AWS_ENDPOINT_URL`: For S3-compatible storage like MinIO (e.g., `https://minio.example.com`)
 - `BACKUP_FILE`: Specific backup file to restore. If not provided, restores the latest backup
 - `RESTORE_MODE`: 
-  - `latest` (default): Restore the most recent backup
-  - `specific`: Same as `latest` but can be combined with `BACKUP_FILE`
+  - `latest` (default): Automatically restore the most recent backup
+  - `specific`: Restore a specific backup (requires `BACKUP_FILE` to be set)
   - `list`: List all available backups and exit without restoring
 - `SKIP_STOP`: Set to `true` to skip stopping the stack (default: `false`)
 - `SKIP_START`: Set to `true` to skip starting the stack after restore (default: `false`)
+
+**Note**: When `BACKUP_FILE` is set, the specified backup will be restored regardless of `RESTORE_MODE`. Use `RESTORE_MODE=specific` to make your intent clear when providing `BACKUP_FILE`.
 
 ## Restore Process
 
@@ -198,7 +200,7 @@ docker compose run --rm restore
 The restore container expects backup archives created by the backup sidecar container with the following structure:
 
 ```
-backup_myapp_20231105-120000_uuid.tar.zst
+backup_myapp_20231105-120000-abc123.tar.zst
 ├── service1/
 │   ├── database/
 │   │   └── pg_dumpall.sql
@@ -214,12 +216,12 @@ backup_myapp_20231105-120000_uuid.tar.zst
 
 Backup archives follow this naming pattern:
 ```
-backup_{PROJECT_NAME}_{TIMESTAMP}_{UUID}.tar.zst
+backup_{PROJECT_NAME}_{TIMESTAMP}-{UUID}.tar.zst
 ```
 
 - `PROJECT_NAME`: The name of the Docker Compose stack
 - `TIMESTAMP`: Format `YYYYMMDD-HHMMSS` (e.g., `20231105-120000`)
-- `UUID`: Unique identifier for the backup
+- `UUID`: Unique identifier for the backup (shortened, e.g., `abc123`)
 - `.tar.zst`: Compressed with Zstandard
 
 ## Compatibility
