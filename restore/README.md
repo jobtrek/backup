@@ -150,7 +150,7 @@ S3_BUCKET_URL=s3://my-backup-bucket/backups
 AWS_ACCESS_KEY_ID=your-key
 AWS_SECRET_ACCESS_KEY=your-secret
 AWS_DEFAULT_REGION=us-east-1
-BACKUP_FILE=backup_myapp_20231105-120000-abc123.tar.zst
+BACKUP_FILE=backup_myapp_20231105-120000_abc123.tar.zst
 
 # Run restore
 docker compose run --rm restore
@@ -200,7 +200,7 @@ docker compose run --rm restore
 The restore container expects backup archives created by the backup sidecar container with the following structure:
 
 ```
-backup_myapp_20231105-120000-abc123.tar.zst
+backup_myapp_20231105-120000_abc123.tar.zst
 ├── service1/
 │   ├── database/
 │   │   └── pg_dumpall.sql
@@ -216,7 +216,7 @@ backup_myapp_20231105-120000-abc123.tar.zst
 
 Backup archives follow this naming pattern:
 ```
-backup_{PROJECT_NAME}_{TIMESTAMP}-{UUID}.tar.zst
+backup_{PROJECT_NAME}_{TIMESTAMP}_{UUID}.tar.zst
 ```
 
 - `PROJECT_NAME`: The name of the Docker Compose stack

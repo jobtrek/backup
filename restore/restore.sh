@@ -153,7 +153,9 @@ if [[ "$RESTORE_MODE" == "list" ]]; then
   for backup in "${AVAILABLE_BACKUPS[@]}"; do
     # Extract timestamp from filename: backup_{PROJECT_NAME}_{TIMESTAMP}_{UUID}.tar.zst
     TIMESTAMP=$(echo "$backup" | sed -E "s/backup_${PROJECT_NAME}_([0-9]{8}-[0-9]{6})_.*/\1/")
-    FORMATTED_DATE=$(date -d "${TIMESTAMP:0:8} ${TIMESTAMP:9:2}:${TIMESTAMP:11:2}:${TIMESTAMP:13:2}" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "$TIMESTAMP")
+    # Convert TIMESTAMP (YYYYMMDD-HHMMSS) to ISO format (YYYYMMDDTHHMMSS) for busybox date compatibility
+    ISO_TIMESTAMP="${TIMESTAMP:0:8}T${TIMESTAMP:9:6}"
+    FORMATTED_DATE=$(date -d "$ISO_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "$TIMESTAMP")
     echo "  - $backup ($FORMATTED_DATE)"
   done
   exit 0
@@ -171,7 +173,10 @@ if [[ -n "$BACKUP_FILE" ]]; then
     exit 1
   fi
   log_info "Using specified backup: ${SELECTED_BACKUP}"
-elif [[ "$RESTORE_MODE" == "latest" ]] || [[ "$RESTORE_MODE" == "specific" ]]; then
+elif [[ "$RESTORE_MODE" == "specific" ]]; then
+  log_error "RESTORE_MODE is 'specific' but no BACKUP_FILE was provided. Please specify the backup file to restore."
+  exit 1
+elif [[ "$RESTORE_MODE" == "latest" ]]; then
   # Select the most recent backup (first in sorted list)
   SELECTED_BACKUP="${AVAILABLE_BACKUPS[0]}"
   log_info "Using latest backup: ${SELECTED_BACKUP}"
@@ -390,19 +395,17 @@ for SERVICE_DIR in "${SERVICE_DIRS[@]}"; do
       docker exec "$CONTAINER_ID" sh -c 'printf "*:*:*:%s:%s\n" "$1" "$2" > /tmp/.pgpass && chmod 600 /tmp/.pgpass' sh "$PGUSER" "$PGPASSWORD"
       
       # Restore database
-      RESTORE_EXIT_CODE=0
-      if docker exec -i \
+      set +e
+      docker exec -i \
         --env "PGPASSFILE=/tmp/.pgpass" \
         "$CONTAINER_ID" sh -c "psql -U \"$PGUSER\" -d postgres" \
-        < "$SERVICE_DIR/database/pg_dumpall.sql" 2>&1 | tee "$TEMP_DIR/restore_pg.log"; then
-        RESTORE_EXIT_CODE=${PIPESTATUS[0]}
-      else
-        RESTORE_EXIT_CODE=$?
-      fi
+        < "$SERVICE_DIR/database/pg_dumpall.sql" 2>&1 | tee "$TEMP_DIR/restore_pg.log"
+      RESTORE_EXIT_CODE=$?
+      set -e
       
       docker exec "$CONTAINER_ID" rm -f /tmp/.pgpass || true
       
-      # Check exit code instead of grepping for "error"
+      # Check exit code
       if [[ $RESTORE_EXIT_CODE -eq 0 ]]; then
         log_info "  -> ✓ PostgreSQL database restored successfully"
       else
@@ -410,13 +413,11 @@ for SERVICE_DIR in "${SERVICE_DIRS[@]}"; do
       fi
     else
       log_warn "  -> No PostgreSQL password found. Attempting restore without password..."
-      RESTORE_EXIT_CODE=0
-      if docker exec -i "$CONTAINER_ID" sh -c "psql -U \"$PGUSER\" -d postgres" \
-        < "$SERVICE_DIR/database/pg_dumpall.sql" 2>&1 | tee "$TEMP_DIR/restore_pg.log"; then
-        RESTORE_EXIT_CODE=${PIPESTATUS[0]}
-      else
-        RESTORE_EXIT_CODE=$?
-      fi
+      set +e
+      docker exec -i "$CONTAINER_ID" sh -c "psql -U \"$PGUSER\" -d postgres" \
+        < "$SERVICE_DIR/database/pg_dumpall.sql" 2>&1 | tee "$TEMP_DIR/restore_pg.log"
+      RESTORE_EXIT_CODE=$?
+      set -e
       
       if [[ $RESTORE_EXIT_CODE -eq 0 ]]; then
         log_info "  -> ✓ PostgreSQL database restored successfully"
@@ -448,13 +449,11 @@ for SERVICE_DIR in "${SERVICE_DIRS[@]}"; do
       docker exec "$CONTAINER_ID" sh -c 'printf "[client]\nuser=%s\npassword=%s\n" "$1" "$2" > /tmp/.my.cnf && chmod 600 /tmp/.my.cnf' sh "$DB_USER" "$DB_PASSWORD"
       
       # Restore database
-      RESTORE_EXIT_CODE=0
-      if docker exec -i "$CONTAINER_ID" sh -c "mariadb --defaults-file=/tmp/.my.cnf" \
-        < "$SERVICE_DIR/mariadb_dump/all_databases.sql" 2>&1 | tee "$TEMP_DIR/restore_mariadb.log"; then
-        RESTORE_EXIT_CODE=${PIPESTATUS[0]}
-      else
-        RESTORE_EXIT_CODE=$?
-      fi
+      set +e
+      docker exec -i "$CONTAINER_ID" sh -c "mariadb --defaults-file=/tmp/.my.cnf" \
+        < "$SERVICE_DIR/mariadb_dump/all_databases.sql" 2>&1 | tee "$TEMP_DIR/restore_mariadb.log"
+      RESTORE_EXIT_CODE=$?
+      set -e
       
       docker exec "$CONTAINER_ID" rm -f /tmp/.my.cnf || true
       
@@ -465,13 +464,11 @@ for SERVICE_DIR in "${SERVICE_DIRS[@]}"; do
       fi
     else
       log_warn "  -> No MariaDB password found. Attempting restore without password..."
-      RESTORE_EXIT_CODE=0
-      if docker exec -i "$CONTAINER_ID" sh -c "mariadb -u \"$DB_USER\"" \
-        < "$SERVICE_DIR/mariadb_dump/all_databases.sql" 2>&1 | tee "$TEMP_DIR/restore_mariadb.log"; then
-        RESTORE_EXIT_CODE=${PIPESTATUS[0]}
-      else
-        RESTORE_EXIT_CODE=$?
-      fi
+      set +e
+      docker exec -i "$CONTAINER_ID" sh -c "mariadb -u \"$DB_USER\"" \
+        < "$SERVICE_DIR/mariadb_dump/all_databases.sql" 2>&1 | tee "$TEMP_DIR/restore_mariadb.log"
+      RESTORE_EXIT_CODE=$?
+      set -e
       
       if [[ $RESTORE_EXIT_CODE -eq 0 ]]; then
         log_info "  -> ✓ MariaDB database restored successfully"
