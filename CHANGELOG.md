@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.2.1](https://github.com/jobtrek/backup/compare/v0.2.0...v0.2.1) (2025-11-12)
+
+
+### Bug Fixes
+
+* **restore:** improve archive extraction method in restore script ([75fa895](https://github.com/jobtrek/backup/commit/75fa8953a2a70d5d9a60b22180979c45568925bf))
+
+
+### Miscellaneous Chores
+
+* remove unnecessary enhance word ([#15](https://github.com/jobtrek/backup/issues/15)) ([85e4530](https://github.com/jobtrek/backup/commit/85e453081beba04d7cff3668cb93050dc005c4f3))
+
+
+### Refactors
+
+* replace build context with image for backup and restore services ([#13](https://github.com/jobtrek/backup/issues/13)) ([75fa895](https://github.com/jobtrek/backup/commit/75fa8953a2a70d5d9a60b22180979c45568925bf))
+
+
+### Build System
+
+* no more image build for PRs ([75fa895](https://github.com/jobtrek/backup/commit/75fa8953a2a70d5d9a60b22180979c45568925bf))
+
 ## [0.2.0](https://github.com/jobtrek/backup/compare/v0.1.3...v0.2.0) (2025-11-12)
 
 
