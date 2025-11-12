@@ -130,14 +130,17 @@ log_info "=== Phase 2: Backup Discovery ==="
 
 # Test S3 connectivity
 log_info "Testing S3 connection..."
-if ! aws s3 ls "${S3_BUCKET_URL%/}/" >/dev/null 2>&1; then
+# Extract bucket name from URL to perform a more efficient check
+URL_NO_PROTO=${S3_BUCKET_URL#s3://}
+BUCKET_NAME=${URL_NO_PROTO%%/*}
+if ! aws s3api head-bucket --bucket "$BUCKET_NAME" >/dev/null 2>&1; then
 	log_error "Failed to connect to S3 bucket: ${S3_BUCKET_URL}"
 	log_error "Please verify:"
 	log_error "  - S3_BUCKET_URL is correct"
 	log_error "  - AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are valid"
 	log_error "  - AWS_DEFAULT_REGION is correct"
 	log_error "  - Network connectivity to the S3 provider"
-	log_error "  - Bucket exists and credentials have proper permissions"
+	log_error "  - Bucket '$BUCKET_NAME' exists and credentials have 's3:ListBucket' permissions"
 	exit 1
 fi
 log_info "✓ S3 connection successful"
