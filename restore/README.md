@@ -30,10 +30,34 @@ This folder contains a restore container designed to restore Docker Compose stac
    # Edit .env with your actual values
    ```
 
-2. **Run the restore container**:
+2.  **Run the restore container**:
    ```bash
    docker compose run --rm restore
    ```
+
+### Using with `docker run` (without Docker Compose)
+
+If you prefer not to use Docker Compose, you can run the restore container directly with Docker.
+
+1.  **Pull the Docker image**:
+    ```bash
+    docker pull ghcr.io/jobtrek/backup-restore:latest
+    ```
+
+2.  **Copy and configure environment variables**:
+    ```bash
+    cp .env.example .env
+    # Edit .env with your actual values
+    ```
+
+3.  **Run the restore container**:
+    ```bash
+    docker run --rm \
+      --env-file .env \
+      -v "/var/run/docker.sock:/var/run/docker.sock" \
+      ghcr.io/jobtrek/backup-restore:latest
+    ```
+    This command mounts the Docker socket and passes all variables from your `.env` file.
 
 ### Environment Variables
 

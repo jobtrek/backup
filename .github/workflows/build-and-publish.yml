@@ -4,12 +4,6 @@ on:
   release:
     types:
       - published
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
 
 permissions:
   contents: read
@@ -17,12 +11,11 @@ permissions:
 
 jobs:
   docker-backup:
-    if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
-      SHOULD_PUSH: ${{ github.event_name == 'release' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+      SHOULD_PUSH: ${{ github.event_name == 'release' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -45,7 +38,6 @@ jobs:
             type=semver,pattern=v{{version}},enable=${{ github.event_name == 'release' }}
             type=semver,pattern=v{{major}},enable=${{ github.event_name == 'release' }}
             type=semver,pattern=v{{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
-            type=raw,value=pr-${{ github.event.pull_request.number }},enable=${{ github.event_name == 'pull_request' }}
 
       - name: Build and push backup image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
@@ -57,12 +49,11 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   docker-restore:
-    if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}-restore
-      SHOULD_PUSH: ${{ github.event_name == 'release' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+      SHOULD_PUSH: ${{ github.event_name == 'release' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -85,7 +76,6 @@ jobs:
             type=semver,pattern=v{{version}},enable=${{ github.event_name == 'release' }}
             type=semver,pattern=v{{major}},enable=${{ github.event_name == 'release' }}
             type=semver,pattern=v{{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
-            type=raw,value=pr-${{ github.event.pull_request.number }},enable=${{ github.event_name == 'pull_request' }}
 
       - name: Build and push restore image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
