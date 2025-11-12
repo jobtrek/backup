@@ -15,7 +15,7 @@ log_error() { echo "[ERROR] $*" >&2; }
 : "${AWS_SECRET_ACCESS_KEY?Missing AWS_SECRET_ACCESS_KEY env var}"
 : "${AWS_DEFAULT_REGION?Missing AWS_DEFAULT_REGION env var}"
 
-log_info "=== Enhanced Backup Sidecar Container Starting ==="
+log_info "=== Backup Sidecar Container Starting ==="
 log_info "Discovering all compose stacks with backup.enable=true labels..."
 
 # --- Discover all compose stacks with backup-enabled containers ---
