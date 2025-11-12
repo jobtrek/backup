@@ -98,9 +98,7 @@ version: '3.8'
 
 services:
   backup-sidecar:
-    build:
-      context: ./backup
-      dockerfile: Dockerfile
+    image: ghcr.io/jobtrek/backup:latest
     restart: always
     environment:
       # Cron schedule (default: 0 2 * * * = 2 AM daily)
@@ -302,27 +300,6 @@ volumes:
 - The cleanup function should automatically restart stopped containers
 - Check logs for error messages during cleanup
 - Manually restart: `docker compose -p <project-name> start`
-
-## Backup Retention and S3 Lifecycle Policies
-
-This backup solution does not automatically delete old backups. To prevent unlimited accumulation:
-
-1. **Configure S3 Lifecycle Policies**: Set up automatic deletion or archival of old backups
-   ```xml
-   <!-- Example: Delete backups older than 30 days -->
-   <LifecycleConfiguration>
-     <Rule>
-       <ID>DeleteOldBackups</ID>
-       <Status>Enabled</Status>
-       <Prefix>backup-</Prefix>
-       <Expiration>
-         <Days>30</Days>
-       </Expiration>
-     </Rule>
-   </LifecycleConfiguration>
-   ```
-
-2. **Monitor S3 costs**: Regularly review your S3 storage costs and adjust retention as needed
 
 ## Best Practices
 
