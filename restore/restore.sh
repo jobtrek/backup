@@ -128,6 +128,20 @@ log_info "✓ Sufficient disk space available: ${AVAILABLE_SPACE}GB"
 # --- Backup Discovery Phase ---
 log_info "=== Phase 2: Backup Discovery ==="
 
+# Test S3 connectivity
+log_info "Testing S3 connection..."
+if ! aws s3 ls "${S3_BUCKET_URL%/}/" >/dev/null 2>&1; then
+	log_error "Failed to connect to S3 bucket: ${S3_BUCKET_URL}"
+	log_error "Please verify:"
+	log_error "  - S3_BUCKET_URL is correct"
+	log_error "  - AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are valid"
+	log_error "  - AWS_DEFAULT_REGION is correct"
+	log_error "  - Network connectivity to the S3 provider"
+	log_error "  - Bucket exists and credentials have proper permissions"
+	exit 1
+fi
+log_info "✓ S3 connection successful"
+
 # List all backups for this project
 log_info "Listing backups in S3..."
 BACKUP_PREFIX="backup_${PROJECT_NAME}_"
