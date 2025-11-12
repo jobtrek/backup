@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.2.0](https://github.com/jobtrek/backup/compare/v0.1.3...v0.2.0) (2025-11-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **backup:** db physical backup is now performed like volumes ([#9](https://github.com/jobtrek/backup/issues/9))
+
+### Features
+
+* implement restore container for S3 backup recovery ([#12](https://github.com/jobtrek/backup/issues/12)) ([c1ed7e8](https://github.com/jobtrek/backup/commit/c1ed7e824c58923a72873a17dff38d12438efefc))
+
+
+### Bug Fixes
+
+* **backup:** update archive naming convention for clarity ([#10](https://github.com/jobtrek/backup/issues/10)) ([210a14a](https://github.com/jobtrek/backup/commit/210a14a8182b374369c09cda87e8180102ca15a9))
+
+
+### Refactors
+
+* **backup:** db physical backup is now performed like volumes ([#9](https://github.com/jobtrek/backup/issues/9)) ([f13b50f](https://github.com/jobtrek/backup/commit/f13b50f2af3ee1e03bc92abf8f1943e0c8f90ded))
+
+
+### Build System
+
+* add condition to skip dependabot for docker job ([#7](https://github.com/jobtrek/backup/issues/7)) ([4094982](https://github.com/jobtrek/backup/commit/4094982ac10d899b12ca7b07f3ed4a4547da69c4))
+
 ## [0.1.3](https://github.com/jobtrek/backup/compare/v0.1.2...v0.1.3) (2025-11-11)
 
 
