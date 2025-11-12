@@ -1,6 +1,6 @@
-# Enhanced Backup Sidecar Container
+# Backup Sidecar Container
 
-This folder contains an enhanced backup sidecar container designed to run **one instance per host** and automatically discover and backup all Docker Compose stacks.
+This folder contains a backup sidecar container designed to run **one instance per host** and automatically discover and backup all Docker Compose stacks.
 
 ## Features
 
