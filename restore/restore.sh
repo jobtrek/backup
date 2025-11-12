@@ -251,7 +251,7 @@ fi
 EXTRACT_DIR="${TEMP_DIR}/extracted"
 mkdir -p "$EXTRACT_DIR"
 log_info "Extracting archive..."
-if tar -I zstd -xf "$DOWNLOAD_PATH" -C "$EXTRACT_DIR"; then
+if zstd -d --stdout "$DOWNLOAD_PATH" | tar -C "$EXTRACT_DIR" -xf -; then
 	log_info "✓ Archive extracted successfully"
 	# Remove downloaded archive to save space
 	rm -f "$DOWNLOAD_PATH"
