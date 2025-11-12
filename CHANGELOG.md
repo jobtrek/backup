@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/jobtrek/backup/compare/v0.2.1...v0.2.2) (2025-11-12)
+
+
+### Features
+
+* **restore:** enhance s3 connectivity check with error logging ([#16](https://github.com/jobtrek/backup/issues/16)) ([6790934](https://github.com/jobtrek/backup/commit/67909349eabd36f50cbfced9f26c446040f6145b))
+
 ## [0.2.1](https://github.com/jobtrek/backup/compare/v0.2.0...v0.2.1) (2025-11-12)
 
 
