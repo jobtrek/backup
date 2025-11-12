@@ -11,7 +11,8 @@ RUN apk add --no-cache \
     aws-cli \
     dcron \
     util-linux \
-    coreutils
+    coreutils \
+    tzdata
 
 # Copy scripts
 COPY --chmod=755 backup.sh /usr/local/bin/backup.sh

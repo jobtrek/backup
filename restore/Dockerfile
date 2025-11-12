@@ -8,7 +8,8 @@ RUN apk add --no-cache \
     zstd \
     aws-cli \
     util-linux \
-    coreutils
+    coreutils \
+    tzdata
 
 # Copy scripts
 COPY --chmod=755 restore.sh /usr/local/bin/restore.sh
