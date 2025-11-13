@@ -215,7 +215,7 @@ volumes:
 6. **Secure Backup Execution**: 
    - PostgreSQL: Creates temporary `.pgpass` file inside container with secure permissions (600)
    - MariaDB: Creates temporary `.my.cnf` file inside container with secure permissions (600)
-   - File backups: Uses `docker cp` to copy volume contents
+  - File backups: Uses `docker cp --archive` to copy volume contents
    - All temporary credential files are deleted after use
 
 7. **Backup Verification**: 
