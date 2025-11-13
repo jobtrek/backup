@@ -4,14 +4,15 @@ FROM alpine:3.22
 # Note: postgresql-client and mariadb-client are NOT needed here because backups
 # run inside the target containers via 'docker exec', not from this sidecar container
 RUN apk add --no-cache \
+    aws-cli \
     bash \
+    coreutils \
+    dcron \
     docker-cli \
     docker-cli-compose \
-    zstd \
-    aws-cli \
-    dcron \
+    tzdata \
     util-linux \
-    coreutils
+    zstd
 
 # Copy scripts
 COPY --chmod=755 backup.sh /usr/local/bin/backup.sh
