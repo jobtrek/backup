@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.4](https://github.com/jobtrek/backup/compare/v0.2.3...v0.2.4) (2025-11-13)
+
+
+### Features
+
+* **restore:** add support for custom s3 endpoint in restore script ([e1b5e49](https://github.com/jobtrek/backup/commit/e1b5e49cde4eb4ae8fcd4f82a06aaea591e92ef8))
+* **restore:** enhance volume restoration with helper image and safety checks ([e1b5e49](https://github.com/jobtrek/backup/commit/e1b5e49cde4eb4ae8fcd4f82a06aaea591e92ef8))
+* **restore:** improve volume restoration using docker cp --archive ([#20](https://github.com/jobtrek/backup/issues/20)) ([e1b5e49](https://github.com/jobtrek/backup/commit/e1b5e49cde4eb4ae8fcd4f82a06aaea591e92ef8))
+
+
+### Documentation
+
+* **backup, restore:** clarify AWS_DEFAULT_REGION usage with garage ([e1b5e49](https://github.com/jobtrek/backup/commit/e1b5e49cde4eb4ae8fcd4f82a06aaea591e92ef8))
+* **backup:** garage hint ([e1b5e49](https://github.com/jobtrek/backup/commit/e1b5e49cde4eb4ae8fcd4f82a06aaea591e92ef8))
+* **restore:** add restart note in restore readme ([e1b5e49](https://github.com/jobtrek/backup/commit/e1b5e49cde4eb4ae8fcd4f82a06aaea591e92ef8))
+
 ## [0.2.3](https://github.com/jobtrek/backup/compare/v0.2.2...v0.2.3) (2025-11-13)
 
 
