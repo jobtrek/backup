@@ -76,9 +76,9 @@ AWS_ENDPOINT_URL="${AWS_ENDPOINT_URL:-}"
 VOLUME_HELPER_IMAGE="${VOLUME_HELPER_IMAGE:-busybox:1.36.1}"
 
 # Build AWS CLI endpoint parameter
-AWS_ENDPOINT_PARAM=""
+AWS_ENDPOINT_ARGS=()
 if [[ -n "$AWS_ENDPOINT_URL" ]]; then
-	AWS_ENDPOINT_PARAM="--endpoint-url $AWS_ENDPOINT_URL"
+	AWS_ENDPOINT_ARGS=(--endpoint-url "$AWS_ENDPOINT_URL")
 	log_info "Using custom S3 endpoint: $AWS_ENDPOINT_URL"
 fi
 
@@ -160,7 +160,7 @@ BACKUP_PREFIX="backup_${PROJECT_NAME}_"
 
 # Get list of backups from S3
 mapfile -t AVAILABLE_BACKUPS < <(
-	aws s3 ls $AWS_ENDPOINT_PARAM "${S3_BUCKET_URL%/}/" 2>/dev/null |
+	aws s3 ls "${AWS_ENDPOINT_ARGS[@]}" "${S3_BUCKET_URL%/}/" 2>/dev/null |
 		grep "${BACKUP_PREFIX}" |
 		awk '{print $4}' |
 		sort -r
@@ -257,7 +257,7 @@ log_info "=== Phase 4: Backup Download & Extraction ==="
 DOWNLOAD_PATH="${TEMP_DIR}/${SELECTED_BACKUP}"
 log_info "Downloading backup from S3..."
 log_info "Source: ${S3_BUCKET_URL%/}/${SELECTED_BACKUP}"
-if aws s3 cp $AWS_ENDPOINT_PARAM "${S3_BUCKET_URL%/}/${SELECTED_BACKUP}" "$DOWNLOAD_PATH" 2>"$TEMP_DIR/s3_error.log"; then
+if aws s3 cp "${AWS_ENDPOINT_ARGS[@]}" "${S3_BUCKET_URL%/}/${SELECTED_BACKUP}" "$DOWNLOAD_PATH" 2>"$TEMP_DIR/s3_error.log"; then
 	DOWNLOAD_SIZE=$(stat -c%s "$DOWNLOAD_PATH" | numfmt --to=iec-i --suffix=B)
 	log_info "✓ Download complete: ${DOWNLOAD_SIZE}"
 else
@@ -382,7 +382,7 @@ for SERVICE_DIR in "${SERVICE_DIRS[@]}"; do
 						mkdir -p "$TARGET_PATH"
 						find "$TARGET_PATH" -mindepth 1 -maxdepth 1 -exec rm -rf {} \;
 					'; then
-					if docker cp "$VOLUME_DIR/." "$CONTAINER_ID:$VOLUME_PATH/"; then
+					if docker cp --archive "$VOLUME_DIR/." "$CONTAINER_ID:$VOLUME_PATH/"; then
 						log_info "      ✓ Restored successfully"
 					else
 						log_error "      ✗ Failed to copy volume data"

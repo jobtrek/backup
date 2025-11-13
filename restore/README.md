@@ -6,7 +6,7 @@ This folder contains a restore container designed to restore Docker Compose stac
 
 - **Automatic backup discovery**: Lists and selects backups from S3-compatible storage
 - **Multiple restore modes**: Restore latest backup, specific backup, or list available backups
-- **Volume restoration**: Restores all volume data using `docker cp`
+- **Volume restoration**: Restores all volume data using `docker cp --archive`
 - **Database restoration**: Supports PostgreSQL and MariaDB logical backup restoration
 - **Safe execution**: Stops stack, restores data, and restarts stack automatically
 - **Flexible control**: Options to skip stopping or starting the stack
@@ -118,7 +118,7 @@ The restore container executes the following phases:
   - Finds the corresponding container in the stack
   - Reads backup labels to determine volume paths
   - Clears existing volume content
-  - Restores volume data using `docker cp`
+  - Restores volume data using `docker cp --archive`
 
 ### Phase 6: Database Restoration
 - Starts containers to allow database restoration
