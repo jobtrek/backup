@@ -73,6 +73,7 @@ RESTORE_MODE="${RESTORE_MODE:-latest}"
 SKIP_STOP="${SKIP_STOP:-false}"
 SKIP_START="${SKIP_START:-false}"
 AWS_ENDPOINT_URL="${AWS_ENDPOINT_URL:-}"
+VOLUME_HELPER_IMAGE="${VOLUME_HELPER_IMAGE:-busybox:1.36.1}"
 
 # Build AWS CLI endpoint parameter
 AWS_ENDPOINT_PARAM=""
@@ -299,6 +300,7 @@ fi
 
 # --- Volume Restoration Phase ---
 log_info "=== Phase 5: Volume Restoration ==="
+log_info "Using helper image for volume operations: ${VOLUME_HELPER_IMAGE}"
 
 # Find all services in the backup
 shopt -s nullglob
@@ -364,12 +366,29 @@ for SERVICE_DIR in "${SERVICE_DIRS[@]}"; do
 
 				log_info "    - Restoring '${VOLUME_NAME}' to ${VOLUME_PATH}"
 
-				# Clear existing content and restore
-				if docker exec "$CONTAINER_ID" sh -c "rm -rf ${VOLUME_PATH}/* ${VOLUME_PATH}/.[!.]* 2>/dev/null || true" &&
-					docker cp "$VOLUME_DIR/." "$CONTAINER_ID:$VOLUME_PATH/"; then
-					log_info "      ✓ Restored successfully"
+				if [[ "$VOLUME_PATH" == "/" ]]; then
+					log_error "      ✗ Refusing to restore into root path '/'"
+					continue
+				fi
+
+				if docker run --rm --volumes-from "$CONTAINER_ID" \
+					-e TARGET_PATH="$VOLUME_PATH" "$VOLUME_HELPER_IMAGE" \
+					sh -c '
+						set -e
+						if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "/" ]; then
+							echo "Invalid TARGET_PATH for restore" >&2
+							exit 1
+						fi
+						mkdir -p "$TARGET_PATH"
+						find "$TARGET_PATH" -mindepth 1 -maxdepth 1 -exec rm -rf {} \;
+					'; then
+					if docker cp "$VOLUME_DIR/." "$CONTAINER_ID:$VOLUME_PATH/"; then
+						log_info "      ✓ Restored successfully"
+					else
+						log_error "      ✗ Failed to copy volume data"
+					fi
 				else
-					log_error "      ✗ Failed to restore volume"
+					log_error "      ✗ Failed to prepare volume"
 				fi
 			done
 		fi
