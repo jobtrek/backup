@@ -134,6 +134,8 @@ The restore container executes the following phases:
 - Displays final state of all containers
 - Can be skipped with `SKIP_START=true`
 
+> **Note**: If there is an error during any phase, the restore process will abort and log the error. The stack **will not** be automatically restarted.
+
 ## Examples
 
 ### Example 1: Restore Latest Backup
