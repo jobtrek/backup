@@ -108,8 +108,7 @@ services:
       - S3_BUCKET_URL=s3://my-backup-bucket/backups
       - AWS_ACCESS_KEY_ID=your-access-key
       - AWS_SECRET_ACCESS_KEY=your-secret-key
-      # If using Garage set to `garage`
-      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_DEFAULT_REGION=us-east-1 # If using Garage set to `garage`
       
       # Optional: Limit zstd compression threads (default: all cores)
       - ZSTD_THREADS=4
