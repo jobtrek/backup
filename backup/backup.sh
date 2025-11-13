@@ -15,6 +15,15 @@ log_error() { echo "[ERROR] $*" >&2; }
 : "${AWS_SECRET_ACCESS_KEY?Missing AWS_SECRET_ACCESS_KEY env var}"
 : "${AWS_DEFAULT_REGION?Missing AWS_DEFAULT_REGION env var}"
 
+# Optional parameters
+AWS_ENDPOINT_URL="${AWS_ENDPOINT_URL:-}"
+
+# Build AWS CLI endpoint parameter
+AWS_ENDPOINT_PARAM=""
+if [[ -n "$AWS_ENDPOINT_URL" ]]; then
+	AWS_ENDPOINT_PARAM="--endpoint-url $AWS_ENDPOINT_URL"
+fi
+
 log_info "=== Backup Sidecar Container Starting ==="
 log_info "Discovering all compose stacks with backup.enable=true labels..."
 
@@ -429,7 +438,7 @@ for PROJECT_NAME in "${ALL_PROJECTS[@]}"; do
 
 	# --- Upload to S3 ---
 	log_info "--- Uploading to S3 ---"
-	if aws s3 cp "$ARCHIVE_PATH" "${S3_BUCKET_URL%/}/${ARCHIVE_NAME}"; then
+	if aws s3 cp $AWS_ENDPOINT_PARAM "$ARCHIVE_PATH" "${S3_BUCKET_URL%/}/${ARCHIVE_NAME}"; then
 		log_info "Upload complete: ${ARCHIVE_NAME}"
 	else
 		log_error "Failed to upload ${ARCHIVE_NAME} to S3"
