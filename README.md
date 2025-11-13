@@ -1,6 +1,6 @@
 # Backup and restore
 
-**v0.2.2** <!-- x-release-please-version -->
+**v0.2.3** <!-- x-release-please-version -->
 
 This repo contains two containers that can be used to backup and restore data from docker containers.
 

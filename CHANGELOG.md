@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/jobtrek/backup/compare/v0.2.2...v0.2.3) (2025-11-13)
+
+
+### Bug Fixes
+
+* add tzdata to dependencies in backup and restore Dockerfiles ([#18](https://github.com/jobtrek/backup/issues/18)) ([b244e7c](https://github.com/jobtrek/backup/commit/b244e7c4733ff7f7da424ce64467c0a28e429325))
+
 ## [0.2.2](https://github.com/jobtrek/backup/compare/v0.2.1...v0.2.2) (2025-11-12)
 
 
