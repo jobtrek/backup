@@ -6,7 +6,7 @@ This folder contains a restore container designed to restore Docker Compose stac
 
 - **Automatic backup discovery**: Lists and selects backups from S3-compatible storage
 - **Multiple restore modes**: Restore latest backup, specific backup, or list available backups
-- **Volume restoration**: Restores all volume data using `docker cp`
+- **Volume restoration**: Restores all volume data using `docker cp --archive`
 - **Database restoration**: Supports PostgreSQL and MariaDB logical backup restoration
 - **Safe execution**: Stops stack, restores data, and restarts stack automatically
 - **Flexible control**: Options to skip stopping or starting the stack
@@ -67,7 +67,7 @@ If you prefer not to use Docker Compose, you can run the restore container direc
 - `S3_BUCKET_URL`: S3 bucket URL where backups are stored (e.g., `s3://my-bucket/backups`)
 - `AWS_ACCESS_KEY_ID`: AWS access key ID
 - `AWS_SECRET_ACCESS_KEY`: AWS secret access key
-- `AWS_DEFAULT_REGION`: AWS region (e.g., `us-east-1`)
+- `AWS_DEFAULT_REGION`: AWS region (e.g., `us-east-1`. If using Garage set to `garage`)
 
 #### Optional
 
@@ -118,7 +118,7 @@ The restore container executes the following phases:
   - Finds the corresponding container in the stack
   - Reads backup labels to determine volume paths
   - Clears existing volume content
-  - Restores volume data using `docker cp`
+  - Restores volume data using `docker cp --archive`
 
 ### Phase 6: Database Restoration
 - Starts containers to allow database restoration
@@ -133,6 +133,8 @@ The restore container executes the following phases:
 - Restarts the entire stack: `docker compose --project-name ${PROJECT_NAME} restart`
 - Displays final state of all containers
 - Can be skipped with `SKIP_START=true`
+
+> **Note**: If there is an error during any phase, the restore process will abort and log the error. The stack **will not** be automatically restarted.
 
 ## Examples
 

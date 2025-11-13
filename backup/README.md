@@ -108,7 +108,7 @@ services:
       - S3_BUCKET_URL=s3://my-backup-bucket/backups
       - AWS_ACCESS_KEY_ID=your-access-key
       - AWS_SECRET_ACCESS_KEY=your-secret-key
-      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_DEFAULT_REGION=us-east-1 # If using Garage set to `garage`
       
       # Optional: Limit zstd compression threads (default: all cores)
       - ZSTD_THREADS=4
@@ -214,7 +214,7 @@ volumes:
 6. **Secure Backup Execution**: 
    - PostgreSQL: Creates temporary `.pgpass` file inside container with secure permissions (600)
    - MariaDB: Creates temporary `.my.cnf` file inside container with secure permissions (600)
-   - File backups: Uses `docker cp` to copy volume contents
+   - File backups: Uses `docker cp --archive` to copy volume contents
    - All temporary credential files are deleted after use
 
 7. **Backup Verification**: 

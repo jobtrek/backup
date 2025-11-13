@@ -72,6 +72,15 @@ wait_for_mariadb() {
 RESTORE_MODE="${RESTORE_MODE:-latest}"
 SKIP_STOP="${SKIP_STOP:-false}"
 SKIP_START="${SKIP_START:-false}"
+AWS_ENDPOINT_URL="${AWS_ENDPOINT_URL:-}"
+VOLUME_HELPER_IMAGE="${VOLUME_HELPER_IMAGE:-busybox:1.36.1}"
+
+# Build AWS CLI endpoint parameter
+AWS_ENDPOINT_ARGS=()
+if [[ -n "$AWS_ENDPOINT_URL" ]]; then
+	AWS_ENDPOINT_ARGS=(--endpoint-url "$AWS_ENDPOINT_URL")
+	log_info "Using custom S3 endpoint: $AWS_ENDPOINT_URL"
+fi
 
 # Temporary directory (will be cleaned up on exit)
 TEMP_DIR=$(mktemp -d)
@@ -151,7 +160,7 @@ BACKUP_PREFIX="backup_${PROJECT_NAME}_"
 
 # Get list of backups from S3
 mapfile -t AVAILABLE_BACKUPS < <(
-	aws s3 ls "${S3_BUCKET_URL%/}/" 2>/dev/null |
+	aws s3 ls "${AWS_ENDPOINT_ARGS[@]}" "${S3_BUCKET_URL%/}/" 2>/dev/null |
 		grep "${BACKUP_PREFIX}" |
 		awk '{print $4}' |
 		sort -r
@@ -247,11 +256,23 @@ log_info "=== Phase 4: Backup Download & Extraction ==="
 
 DOWNLOAD_PATH="${TEMP_DIR}/${SELECTED_BACKUP}"
 log_info "Downloading backup from S3..."
-if aws s3 cp "${S3_BUCKET_URL%/}/${SELECTED_BACKUP}" "$DOWNLOAD_PATH"; then
+log_info "Source: ${S3_BUCKET_URL%/}/${SELECTED_BACKUP}"
+if aws s3 cp "${AWS_ENDPOINT_ARGS[@]}" "${S3_BUCKET_URL%/}/${SELECTED_BACKUP}" "$DOWNLOAD_PATH" 2>"$TEMP_DIR/s3_error.log"; then
 	DOWNLOAD_SIZE=$(stat -c%s "$DOWNLOAD_PATH" | numfmt --to=iec-i --suffix=B)
 	log_info "✓ Download complete: ${DOWNLOAD_SIZE}"
 else
 	log_error "Failed to download backup from S3"
+	if [[ -f "$TEMP_DIR/s3_error.log" ]]; then
+		log_error "S3 Error details:"
+		cat "$TEMP_DIR/s3_error.log" >&2
+	fi
+	log_error "Please verify:"
+	log_error "  - S3_BUCKET_URL is correct: ${S3_BUCKET_URL}"
+	log_error "  - AWS credentials have 's3:GetObject' permissions"
+	log_error "  - File exists: ${SELECTED_BACKUP}"
+	if [[ -n "$AWS_ENDPOINT_URL" ]]; then
+		log_error "  - Custom endpoint is accessible: ${AWS_ENDPOINT_URL}"
+	fi
 	exit 1
 fi
 
@@ -279,6 +300,7 @@ fi
 
 # --- Volume Restoration Phase ---
 log_info "=== Phase 5: Volume Restoration ==="
+log_info "Using helper image for volume operations: ${VOLUME_HELPER_IMAGE}"
 
 # Find all services in the backup
 shopt -s nullglob
@@ -344,12 +366,29 @@ for SERVICE_DIR in "${SERVICE_DIRS[@]}"; do
 
 				log_info "    - Restoring '${VOLUME_NAME}' to ${VOLUME_PATH}"
 
-				# Clear existing content and restore
-				if docker exec "$CONTAINER_ID" sh -c "rm -rf ${VOLUME_PATH}/* ${VOLUME_PATH}/.[!.]* 2>/dev/null || true" &&
-					docker cp "$VOLUME_DIR/." "$CONTAINER_ID:$VOLUME_PATH/"; then
-					log_info "      ✓ Restored successfully"
+				if [[ "$VOLUME_PATH" == "/" ]]; then
+					log_error "      ✗ Refusing to restore into root path '/'"
+					continue
+				fi
+
+				if docker run --rm --volumes-from "$CONTAINER_ID" \
+					-e TARGET_PATH="$VOLUME_PATH" "$VOLUME_HELPER_IMAGE" \
+					sh -c '
+						set -e
+						if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "/" ]; then
+							echo "Invalid TARGET_PATH for restore" >&2
+							exit 1
+						fi
+						mkdir -p "$TARGET_PATH"
+						find "$TARGET_PATH" -mindepth 1 -maxdepth 1 -exec rm -rf {} \;
+					'; then
+					if docker cp --archive "$VOLUME_DIR/." "$CONTAINER_ID:$VOLUME_PATH/"; then
+						log_info "      ✓ Restored successfully"
+					else
+						log_error "      ✗ Failed to copy volume data"
+					fi
 				else
-					log_error "      ✗ Failed to restore volume"
+					log_error "      ✗ Failed to prepare volume"
 				fi
 			done
 		fi
