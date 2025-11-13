@@ -67,7 +67,7 @@ If you prefer not to use Docker Compose, you can run the restore container direc
 - `S3_BUCKET_URL`: S3 bucket URL where backups are stored (e.g., `s3://my-bucket/backups`)
 - `AWS_ACCESS_KEY_ID`: AWS access key ID
 - `AWS_SECRET_ACCESS_KEY`: AWS secret access key
-- `AWS_DEFAULT_REGION`: AWS region (e.g., `us-east-1`)
+- `AWS_DEFAULT_REGION`: AWS region (e.g., `us-east-1`. If using Garage set to `garage`)
 
 #### Optional
 
