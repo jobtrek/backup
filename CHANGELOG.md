@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/jobtrek/backup/compare/v0.2.4...v0.2.5) (2025-11-25)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump actions/checkout from 5.0.0 to 6.0.0 ([#22](https://github.com/jobtrek/backup/issues/22)) ([0f922f7](https://github.com/jobtrek/backup/commit/0f922f7003c04ca07c4ee6f184bac8f2329ea1a6))
+
 ## [0.2.4](https://github.com/jobtrek/backup/compare/v0.2.3...v0.2.4) (2025-11-13)
 
 
