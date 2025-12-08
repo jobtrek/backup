@@ -1,4 +1,4 @@
-FROM alpine:3.22
+FROM alpine:3.23
 
 # Install dependencies
 # Note: postgresql-client and mariadb-client are NOT needed here because backups
