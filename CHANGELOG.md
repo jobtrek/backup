@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.6](https://github.com/jobtrek/backup/compare/v0.2.5...v0.2.6) (2026-01-30)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump actions/checkout from 6.0.0 to 6.0.1 ([#25](https://github.com/jobtrek/backup/issues/25)) ([6af38f6](https://github.com/jobtrek/backup/commit/6af38f6da563d05e48b575bc23f0cd598ed501c6))
+* **deps:** bump actions/checkout from 6.0.1 to 6.0.2 ([#28](https://github.com/jobtrek/backup/issues/28)) ([c1c5d15](https://github.com/jobtrek/backup/commit/c1c5d15ceca482544a56d5a3f80d9833726963bd))
+* **deps:** bump alpine from 3.22 to 3.23 in /backup ([#24](https://github.com/jobtrek/backup/issues/24)) ([7fba0b9](https://github.com/jobtrek/backup/commit/7fba0b9fecd0cdbcc344787fb26b95f16dc08f59))
+* **deps:** bump docker/metadata-action from 5.9.0 to 5.10.0 ([#26](https://github.com/jobtrek/backup/issues/26)) ([386011d](https://github.com/jobtrek/backup/commit/386011d6c21c87991bd3e64a7f6c13a30239d726))
+
 ## [0.2.5](https://github.com/jobtrek/backup/compare/v0.2.4...v0.2.5) (2025-11-25)
 
 
