@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/jobtrek/backup/compare/v0.2.6...v0.2.7) (2026-02-04)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump docker/login-action from 3.6.0 to 3.7.0 ([#29](https://github.com/jobtrek/backup/issues/29)) ([b304136](https://github.com/jobtrek/backup/commit/b3041363a0ca7a945279b1f6015fec8526b24808))
+
 ## [0.2.6](https://github.com/jobtrek/backup/compare/v0.2.5...v0.2.6) (2026-01-30)
 
 
