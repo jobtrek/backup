@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.8](https://github.com/jobtrek/backup/compare/v0.2.7...v0.2.8) (2026-02-18)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump docker/build-push-action from 6.18.0 to 6.19.2 ([#31](https://github.com/jobtrek/backup/issues/31)) ([ec49c33](https://github.com/jobtrek/backup/commit/ec49c334bf86a38fc04ea33e46cf81ffe88c469f))
+
 ## [0.2.7](https://github.com/jobtrek/backup/compare/v0.2.6...v0.2.7) (2026-02-04)
 
 
