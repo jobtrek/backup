@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.9](https://github.com/jobtrek/backup/compare/v0.2.8...v0.2.9) (2026-03-11)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump docker/build-push-action from 6.19.2 to 7.0.0 ([#34](https://github.com/jobtrek/backup/issues/34)) ([23e6301](https://github.com/jobtrek/backup/commit/23e6301cd282e645d074ccd19353a35a21e0a494))
+* **deps:** bump docker/login-action from 3.7.0 to 4.0.0 ([#33](https://github.com/jobtrek/backup/issues/33)) ([cee2645](https://github.com/jobtrek/backup/commit/cee264500d05761653ab97222476f30ccfe71fce))
+* **deps:** bump docker/metadata-action from 5.10.0 to 6.0.0 ([#35](https://github.com/jobtrek/backup/issues/35)) ([f195dd8](https://github.com/jobtrek/backup/commit/f195dd860049950c2ebf1bdeba5861c99990e291))
+
 ## [0.2.8](https://github.com/jobtrek/backup/compare/v0.2.7...v0.2.8) (2026-02-18)
 
 
