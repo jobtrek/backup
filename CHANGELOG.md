@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.11](https://github.com/jobtrek/backup/compare/v0.2.10...v0.2.11) (2026-04-21)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump googleapis/release-please-action from 4.4.0 to 4.4.1 ([#40](https://github.com/jobtrek/backup/issues/40)) ([95d7371](https://github.com/jobtrek/backup/commit/95d7371d53d2bab306302458ab5bafc73e58d8af))
+
 ## [0.2.10](https://github.com/jobtrek/backup/compare/v0.2.9...v0.2.10) (2026-04-15)
 
 
