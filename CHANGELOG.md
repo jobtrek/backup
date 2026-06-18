@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.11](https://github.com/jobtrek/backup/compare/v0.2.10...v0.2.11) (2026-06-18)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump actions/checkout from 6.0.2 to 6.0.3 ([#46](https://github.com/jobtrek/backup/issues/46)) ([8326cb4](https://github.com/jobtrek/backup/commit/8326cb41bc1326f5050fedda1c05ab0dfe42d362))
+* **deps:** bump alpine from 3.23 to 3.24 in /backup ([#47](https://github.com/jobtrek/backup/issues/47)) ([dd53c62](https://github.com/jobtrek/backup/commit/dd53c62717e1351b572d55a19dcf66a22987a71e))
+* **deps:** bump docker/build-push-action from 7.1.0 to 7.2.0 ([#43](https://github.com/jobtrek/backup/issues/43)) ([87bf3a3](https://github.com/jobtrek/backup/commit/87bf3a39ac95a3db7b1c63bb3f716bf80bf23e55))
+* **deps:** bump docker/login-action from 4.1.0 to 4.2.0 ([#44](https://github.com/jobtrek/backup/issues/44)) ([a7c7749](https://github.com/jobtrek/backup/commit/a7c7749db7a2b47ffd66a60f48ad310b33a3321b))
+* **deps:** bump docker/metadata-action from 6.0.0 to 6.1.0 ([#45](https://github.com/jobtrek/backup/issues/45)) ([a422f60](https://github.com/jobtrek/backup/commit/a422f60da6166477634f81c8d9bbd786b7ca5cd7))
+* **deps:** bump googleapis/release-please-action from 4.4.0 to 4.4.1 ([#40](https://github.com/jobtrek/backup/issues/40)) ([95d7371](https://github.com/jobtrek/backup/commit/95d7371d53d2bab306302458ab5bafc73e58d8af))
+* **deps:** bump googleapis/release-please-action from 4.4.1 to 5.0.0 ([#42](https://github.com/jobtrek/backup/issues/42)) ([9f3d0fa](https://github.com/jobtrek/backup/commit/9f3d0faa32f0ba7db7439f680c850e702faed956))
+
 ## [0.2.10](https://github.com/jobtrek/backup/compare/v0.2.9...v0.2.10) (2026-04-15)
 
 
