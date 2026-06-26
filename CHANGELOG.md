@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.12](https://github.com/jobtrek/backup/compare/v0.2.11...v0.2.12) (2026-06-26)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump actions/checkout from 6.0.3 to 7.0.0 ([#48](https://github.com/jobtrek/backup/issues/48)) ([8bdc0d9](https://github.com/jobtrek/backup/commit/8bdc0d9c92186930953bd47a75cf7b3e4376b994))
+
 ## [0.2.11](https://github.com/jobtrek/backup/compare/v0.2.10...v0.2.11) (2026-06-18)
 
 
